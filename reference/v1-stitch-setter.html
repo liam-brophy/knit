@@ -1,0 +1,647 @@
+<title>Stitch Setter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Zilla+Slab:wght@400;500;600;700&family=Roboto+Slab:wght@400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=Libre+Caslon+Text:wght@400;700&family=DM+Serif+Display&family=Abril+Fatface&family=Alfa+Slab+One&family=Archivo+Black&family=Rubik:wght@500;700;900&family=Silkscreen&display=swap">
+<style>
+/* Layout: a full-height workbench. The knitted cover sits on a dark-grey stage; controls live in a right-hand rail that stacks below on phones. */
+:root{
+  --bg:#e5e8ec; --panel:#f3f4f6; --field:#ffffff; --fg:#1b2130; --muted:#5a6476; --line:#cdd3dc;
+  --stage:#c9ced6; --accent:#a8432a; --accent-ink:#ffffff; --toast:#1b2130; --toast-ink:#f3f4f6;
+  --f-display:"Bricolage Grotesque","IBM Plex Sans",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12151b; --panel:#191d25; --field:#10131a; --fg:#e4e7ec; --muted:#959eae; --line:#2b313c;
+  --stage:#0c0e12; --accent:#e0805f; --accent-ink:#1d0f09; --toast:#e4e7ec; --toast-ink:#12151b; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#12151b; --panel:#191d25; --field:#10131a; --fg:#e4e7ec; --muted:#959eae; --line:#2b313c;
+  --stage:#0c0e12; --accent:#e0805f; --accent-ink:#1d0f09; --toast:#e4e7ec; --toast-ink:#12151b; color-scheme:dark }
+
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font:14px/1.45 var(--f-body)}
+*{box-sizing:border-box}
+.app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr)}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding-block:10px;padding-inline:16px;background:var(--panel);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:10px;margin-right:auto;min-width:0}
+.brand h1{margin:0;font:700 21px/1 var(--f-display);letter-spacing:-.015em}
+.brand span{color:var(--muted);font-size:12.5px}
+.group{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.group-label{font:600 10.5px/1 var(--f-body);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+.btn{font:500 13px/1 var(--f-body);padding:8px 12px;border-radius:6px;border:1px solid var(--line);background:var(--field);color:var(--fg);cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:transparent;color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn svg{width:14px;height:14px;fill:currentColor}
+:is(.btn,select,input,textarea,.chip):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.work{display:grid;grid-template-columns:minmax(0,1fr) 344px;min-height:0}
+.stage{background:var(--stage);display:flex;flex-direction:column;gap:12px;padding-block:24px 14px;padding-inline:16px;min-height:0;min-width:0}
+.stage-inner{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+#cv{display:block;background:#16191f;box-shadow:0 1px 2px rgba(0,0,0,.25),0 14px 34px rgba(0,0,0,.22)}
+.meta{font:12px/1.4 var(--f-mono);color:var(--muted);text-align:center;font-variant-numeric:tabular-nums;text-wrap:balance}
+
+.panel{background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;min-height:0}
+.sec{display:grid;gap:13px;padding-block:16px;padding-inline:16px;border-bottom:1px solid var(--line)}
+.sec h2{margin:0;font:600 10.5px/1 var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ctl{display:grid;gap:5px;min-width:0}
+.ctl>.top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:13px}
+.val{font:12px/1 var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.hint{margin:0;font-size:12px;color:var(--muted);line-height:1.4}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input[type=range]{width:100%;margin:0;accent-color:var(--accent)}
+textarea,select,input[type=number]{font:inherit;font-size:13px;color:var(--fg);background:var(--field);border:1px solid var(--line);border-radius:6px;padding:7px 8px;width:100%;min-width:0}
+textarea{font:15px/1.35 var(--f-mono);min-height:104px;resize:vertical}
+.check{display:flex;align-items:center;gap:8px;font-size:13px}
+.check input{accent-color:var(--accent);width:15px;height:15px;margin:0}
+.row-btns{display:flex;flex-wrap:wrap;gap:6px}
+
+.palette{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.sw{display:grid;justify-items:center;gap:4px;font:11px var(--f-mono);color:var(--muted)}
+.swatch{position:relative;width:34px;height:34px;border-radius:50%;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
+input[type=color]{-webkit-appearance:none;appearance:none;border:0;padding:0;width:100%;height:100%;background:none;cursor:pointer}
+input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+input[type=color]::-webkit-color-swatch{border:0;border-radius:50%}
+input[type=color]::-moz-color-swatch{border:0;border-radius:50%}
+.colors{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px}
+.colors label{display:flex;align-items:center;gap:7px}
+.colors .swatch{width:26px;height:26px}
+
+.lines{display:grid;gap:10px}
+.line{display:grid;gap:7px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--field)}
+.line-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.line-name{font:600 14px/1.2 var(--f-display);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{width:26px;height:26px;border-radius:5px;border:0;cursor:pointer;font:600 11px/1 var(--f-mono);box-shadow:inset 0 0 0 1px rgba(0,0,0,.2);opacity:.32;transition:opacity .12s}
+.chip[aria-pressed="true"]{opacity:1;outline:2px solid var(--fg);outline-offset:2px}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--toast);color:var(--toast-ink);font-size:13px;padding:9px 14px;border-radius:7px;max-width:calc(100% - 32px);box-shadow:0 6px 20px rgba(0,0,0,.25)}
+
+@media (max-width:860px){
+  html,body,.app{height:auto}
+  .work{grid-template-columns:1fr}
+  .stage{height:74vh}
+  .panel{border-left:0;border-top:1px solid var(--line);overflow:visible}
+}
+@media (prefers-reduced-motion:reduce){.chip{transition:none}}
+</style>
+
+<div class="app">
+  <header class="bar">
+    <div class="brand"><h1>Stitch Setter</h1><span>Type knitted into the fabric</span></div>
+    <div class="group" role="group" aria-label="Presets">
+      <span class="group-label">Presets</span>
+      <button class="btn" type="button" id="pJohn">John of John</button>
+      <button class="btn" type="button" id="pPatch">Patchwork</button>
+    </div>
+    <div class="group">
+      <button class="btn" type="button" id="reroll" title="New random arrangement of flecks, fibres and strays">Reroll</button>
+      <button class="btn" type="button" id="knit"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z"/></svg>Knit it</button>
+      <button class="btn" type="button" id="record">Record knit</button>
+      <select id="expW" aria-label="Export width" style="width:auto">
+        <option value="1800">1800 px wide</option>
+        <option value="2700" selected>2700 px wide</option>
+        <option value="3600">3600 px wide</option>
+      </select>
+      <button class="btn primary" type="button" id="export">Export PNG</button>
+    </div>
+  </header>
+
+  <main class="work">
+    <section class="stage" aria-label="Preview">
+      <div class="stage-inner" id="stageInner"><canvas id="cv" role="img" aria-label="Knitted type preview"></canvas></div>
+      <div class="meta" id="meta"></div>
+    </section>
+
+    <aside class="panel" aria-label="Controls">
+      <div class="sec">
+        <h2>Type</h2>
+        <div class="ctl"><label for="text" class="hint">One line per row of type. Blank lines add space.</label>
+          <textarea id="text" data-k="text" spellcheck="false"></textarea></div>
+        <div class="two">
+          <div class="ctl"><label for="font" class="hint">Typeface</label><select id="font" data-k="font"></select></div>
+          <div class="ctl"><label for="weight" class="hint">Weight</label><select id="weight" data-k="weight"></select></div>
+        </div>
+        <div class="row-btns">
+          <label class="btn" for="fontFile">Upload a font…</label>
+          <input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2" hidden>
+          <button class="btn" type="button" id="fit">Fit to width</button>
+        </div>
+        <div class="ctl"><div class="top"><label for="size">Size</label><span class="val" data-v="size"></span></div>
+          <input type="range" id="size" data-k="size" min="6" max="160" step="1" data-fmt="sts"></div>
+        <div class="two">
+          <div class="ctl"><div class="top"><label for="leading">Leading</label><span class="val" data-v="leading"></span></div>
+            <input type="range" id="leading" data-k="leading" min="0.6" max="1.8" step="0.01" data-fmt="x"></div>
+          <div class="ctl"><div class="top"><label for="tracking">Tracking</label><span class="val" data-v="tracking"></span></div>
+            <input type="range" id="tracking" data-k="tracking" min="-0.1" max="0.4" step="0.005" data-fmt="em"></div>
+        </div>
+        <div class="two">
+          <div class="ctl"><div class="top"><label for="valign">Position</label><span class="val" data-v="valign"></span></div>
+            <input type="range" id="valign" data-k="valign" min="0" max="1" step="0.01" data-fmt="pct"></div>
+          <div class="ctl"><div class="top"><label for="fill">Stitch fill</label><span class="val" data-v="fill"></span></div>
+            <input type="range" id="fill" data-k="fill" min="0.15" max="0.85" step="0.01" data-fmt="pct"></div>
+        </div>
+        <p class="hint">Stitch fill decides how much of a stitch a letter must cover before it gets knitted in yarn. Raise it to save thin serifs.</p>
+      </div>
+
+      <div class="sec">
+        <h2>Lines</h2>
+        <div class="lines" id="lines"></div>
+      </div>
+
+      <div class="sec">
+        <h2>Fabric</h2>
+        <div class="two">
+          <div class="ctl"><label for="format" class="hint">Format</label>
+            <select id="format" data-k="format"></select></div>
+          <div class="ctl"><div class="top"><label for="cols">Stitches across</label><span class="val" data-v="cols"></span></div>
+            <input type="range" id="cols" data-k="cols" min="30" max="240" step="1"></div>
+        </div>
+        <div class="ctl">
+          <span class="hint">Gauge per 4 in, as printed on a yarn label</span>
+          <div class="two">
+            <label class="ctl"><span class="hint">Stitches</span><input type="number" id="gaugeSts" data-k="gaugeSts" min="4" max="60" step="1"></label>
+            <label class="ctl"><span class="hint">Rows</span><input type="number" id="gaugeRows" data-k="gaugeRows" min="4" max="80" step="1"></label>
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" id="correct" data-k="correct">Correct letter shapes for gauge</label>
+        <div class="colors">
+          <label><span class="swatch"><input type="color" id="groundA" data-k="groundA" aria-label="Top ground colour"></span>Top</label>
+          <label><span class="swatch"><input type="color" id="groundB" data-k="groundB" aria-label="Bottom ground colour"></span>Bottom</label>
+        </div>
+        <div class="two">
+          <div class="ctl"><div class="top"><label for="split">Colour change</label><span class="val" data-v="split"></span></div>
+            <input type="range" id="split" data-k="split" min="0" max="1" step="0.005" data-fmt="pct"></div>
+          <div class="ctl"><div class="top"><label for="blend">Blend</label><span class="val" data-v="blend"></span></div>
+            <input type="range" id="blend" data-k="blend" min="0" max="0.4" step="0.005" data-fmt="pct"></div>
+        </div>
+        <div class="ctl"><div class="top"><label for="mottle">Dye mottling</label><span class="val" data-v="mottle"></span></div>
+          <input type="range" id="mottle" data-k="mottle" min="0" max="1" step="0.01" data-fmt="pct"></div>
+      </div>
+
+      <div class="sec">
+        <h2>Yarn</h2>
+        <div class="palette" id="palette"></div>
+        <p class="hint">Assign these yarns to each line above. Pick two or more on a line to mix them.</p>
+        <div class="two">
+          <div class="ctl"><div class="top"><label for="halo">Halo</label><span class="val" data-v="halo"></span></div>
+            <input type="range" id="halo" data-k="halo" min="0" max="100" step="1"></div>
+          <div class="ctl"><div class="top"><label for="fuzz">Fabric fuzz</label><span class="val" data-v="fuzz"></span></div>
+            <input type="range" id="fuzz" data-k="fuzz" min="0" max="100" step="1"></div>
+        </div>
+        <div class="two">
+          <div class="ctl"><div class="top"><label for="strays">Strays</label><span class="val" data-v="strays"></span></div>
+            <input type="range" id="strays" data-k="strays" min="0" max="10" step="1"></div>
+          <div class="ctl"><div class="top"><label for="strayWeight">Stray weight</label><span class="val" data-v="strayWeight"></span></div>
+            <input type="range" id="strayWeight" data-k="strayWeight" min="0.06" max="0.45" step="0.01" data-fmt="x"></div>
+        </div>
+        <div class="ctl"><div class="top"><label for="flecks">Tweed flecks</label><span class="val" data-v="flecks"></span></div>
+          <input type="range" id="flecks" data-k="flecks" min="0" max="80" step="1" data-fmt="per"></div>
+        <div class="colors">
+          <label><span class="swatch"><input type="color" id="fleckA" data-k="fleckA" aria-label="Fleck colour one"></span>Fleck</label>
+          <label><span class="swatch"><input type="color" id="fleckB" data-k="fleckB" aria-label="Fleck colour two"></span>Fleck</label>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h2>Motion</h2>
+        <div class="ctl"><div class="top"><label for="dur">Knit duration</label><span class="val" data-v="dur"></span></div>
+          <input type="range" id="dur" data-k="dur" min="2" max="16" step="0.5" data-fmt="sec"></div>
+        <p class="hint">Knit it plays the fabric row by row from the cast-on edge, then lays the strays. Record knit saves that as a 1080 px wide video.</p>
+      </div>
+    </aside>
+  </main>
+</div>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script>
+(() => {
+const $ = s => document.querySelector(s);
+const FONTS = [
+  ['Zilla Slab',[400,500,600,700]], ['Roboto Slab',[400,500,600,700,800,900]], ['Fraunces',[400,600,800]],
+  ['Libre Caslon Text',[400,700]], ['DM Serif Display',[400]], ['Abril Fatface',[400]], ['Alfa Slab One',[400]],
+  ['Archivo Black',[400]], ['Rubik',[500,700,900]], ['Silkscreen',[400]]
+];
+const uploaded = {};
+const FORMATS = {
+  '6x9':{w:6,h:9,label:'6 × 9 in'}, '5.5x8.5':{w:5.5,h:8.5,label:'5.5 × 8.5 in'}, '5x8':{w:5,h:8,label:'5 × 8 in'},
+  '4x5':{w:4,h:5,label:'4 : 5 post'}, '1x1':{w:1,h:1,label:'Square'}
+};
+const line = (scale, yarns, mix='patches') => ({scale, yarns, mix});
+const PRESETS = {
+  john: { text:'John\nof\n\n\nJohn', font:'Zilla Slab', weight:600, lines:[line(100,[0]), line(40,[0]), line(100,[1,2],'speckle')],
+    cols:118, gaugeSts:20, gaugeRows:28, correct:true, size:null, fitFrac:0.56, leading:1.0, tracking:0.01, valign:0.24, fill:0.42,
+    format:'6x9', groundA:'#7f9cc6', groundB:'#62b5ae', split:0.55, blend:0.012, mottle:0.6,
+    yarns:['#f7f5ef','#203063','#2c6b52','#d9824e','#e3a3a0','#e2c35d'],
+    halo:26, fuzz:22, strays:1, strayWeight:0.16, flecks:14, fleckA:'#d9824e', fleckB:'#e3a3a0', dur:6, seed:7 },
+  patch: { text:'Words\nshould be\nmade of\nsomething', font:'Archivo Black', weight:400,
+    lines:[0,1,2,3].map(()=>line(100,[0,1,2,3,4,5])), cols:84, gaugeSts:18, gaugeRows:24, correct:true, size:null, fitFrac:0.86,
+    leading:1.04, tracking:0.0, valign:0.5, fill:0.5, format:'4x5', groundA:'#e3ded4', groundB:'#e3ded4', split:0.5, blend:0, mottle:0.18,
+    yarns:['#d4a83c','#8b5434','#5a8fd8','#2c2a28','#e88ab0','#3a9d6f'],
+    halo:44, fuzz:26, strays:3, strayWeight:0.2, flecks:0, fleckA:'#d9824e', fleckB:'#e3a3a0', dur:7, seed:21 }
+};
+const KEY = 'stitch-setter:v1';
+let S;
+try { const saved = JSON.parse(localStorage.getItem(KEY) || 'null'); if (saved && saved.text !== undefined) S = Object.assign(structuredClone(PRESETS.john), saved); } catch (e) {}
+if (!S) S = structuredClone(PRESETS.john);
+if (!FONTS.some(f => f[0] === S.font)) { S.font = 'Zilla Slab'; S.weight = 600; }
+
+/* ---------- maths ---------- */
+function h32(a){ a|=0; a=Math.imul(a^(a>>>16),0x7feb352d); a=Math.imul(a^(a>>>15),0x846ca68b); a^=a>>>16; return (a>>>0)/4294967296; }
+function rnd(i,salt){ return h32(Math.imul(i,0x9E3779B1)^Math.imul(salt+1,0x85EBCA77)^Math.imul(S.seed+1,0xC2B2AE3D)); }
+function vnoise(x,y,salt){
+  const xi=Math.floor(x), yi=Math.floor(y), xf=x-xi, yf=y-yi, u=xf*xf*(3-2*xf), v=yf*yf*(3-2*yf);
+  const k=Math.imul(salt+S.seed*31,0x9E3779B1);
+  const h=(a,b)=>h32(Math.imul(a,0x27d4eb2d)^Math.imul(b,0x165667b1)^k);
+  const a=h(xi,yi), b=h(xi+1,yi), c=h(xi,yi+1), d=h(xi+1,yi+1);
+  return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v;
+}
+const fbm=(x,y,s)=>vnoise(x,y,s)*.55+vnoise(x*2.1,y*2.1,s+17)*.3+vnoise(x*4.3,y*4.3,s+43)*.15;
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const smooth=(a,b,x)=>{ const t=clamp((x-a)/(b-a),0,1); return t*t*(3-2*t); };
+const hex2rgb=h=>{ h=String(h).replace('#',''); if(h.length===3) h=h.split('').map(c=>c+c).join(''); const n=parseInt(h,16)||0; return [n>>16&255,n>>8&255,n&255]; };
+const shade=(c,a)=>a<0?c.map(v=>v*(1+a)):c.map(v=>v+(255-v)*a);
+const css=c=>`rgb(${c[0]|0},${c[1]|0},${c[2]|0})`;
+const rgba=(c,a)=>`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+const lum=c=>(0.2126*c[0]+0.7152*c[1]+0.0722*c[2])/255;
+
+/* ---------- layout: text → stitch chart ---------- */
+const maskC=document.createElement('canvas'); const maskX=maskC.getContext('2d',{willReadFrequently:true});
+let L=null;
+function textLines(){
+  let k=0;
+  return S.text.split('\n').map(t=>{
+    if(!t.trim()) return {text:'',cfg:null};
+    if(!S.lines[k]) S.lines[k]=line(100,[0]);
+    const cfg=S.lines[k]; return {text:t, cfg, idx:k++};
+  });
+}
+const fontStr=px=>`${S.weight} ${px}px "${S.font}", serif`;
+function setTracking(ctx,px){ if('letterSpacing' in ctx) ctx.letterSpacing=px+'px'; }
+
+function computeLayout(){
+  const fmt=FORMATS[S.format]||FORMATS['6x9'];
+  const ph=S.gaugeSts/S.gaugeRows, cols=Math.round(S.cols);
+  const rows=Math.max(8,Math.round(cols*fmt.h/fmt.w/ph));
+  const designH=S.correct?rows*ph:rows;
+  const SS=4; maskC.width=cols*SS; maskC.height=rows*SS;
+  const m=maskX; m.setTransform(1,0,0,1,0,0); m.clearRect(0,0,maskC.width,maskC.height);
+  m.setTransform(SS,0,0,SS*rows/designH,0,0); m.fillStyle='#000'; m.textBaseline='alphabetic';
+  const lines=textLines();
+  const size=S.size||30;
+  const box=l=>(l.cfg?size*l.cfg.scale/100:size*0.5)*S.leading;
+  const total=lines.reduce((a,l)=>a+box(l),0);
+  let y=(designH-total)*S.valign; const info=[];
+  for(const l of lines){
+    const h=box(l);
+    if(l.cfg){
+      const fs=size*l.cfg.scale/100, tr=S.tracking*fs;
+      m.font=fontStr(fs); setTracking(m,tr);
+      const w=m.measureText(l.text).width-tr, x0=(cols-w)/2, base=y+h/2+fs*0.34;
+      m.fillText(l.text,x0,base);
+      const bounds=[0]; for(let j=1;j<=l.text.length;j++) bounds.push(m.measureText(l.text.slice(0,j)).width);
+      info.push({y0:y,y1:y+h,x0,bounds,cfg:l.cfg,idx:l.idx,fs});
+    }
+    y+=h;
+  }
+  setTracking(m,0); m.setTransform(1,0,0,1,0,0);
+  const img=m.getImageData(0,0,maskC.width,maskC.height).data, MW=maskC.width;
+  const N=cols*rows, yarn=new Int8Array(N).fill(-1), rgb=new Float32Array(N*3), fleck=new Uint8Array(N), variant=new Uint8Array(N);
+  const A=hex2rgb(S.groundA), B=hex2rgb(S.groundB), pal=S.yarns.map(hex2rgb), F=[hex2rgb(S.fleckA),hex2rgb(S.fleckB)];
+  const thr=1-S.fill, letters=[], blobS=cols*0.18;
+  for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+    const i=r*cols+c; let sum=0;
+    for(let dy=0;dy<SS;dy++){ const o=((r*SS+dy)*MW+c*SS)*4+3; for(let dx=0;dx<SS;dx++) sum+=img[o+dx*4]; }
+    const cov=sum/(SS*SS*255); let col;
+    variant[i]=Math.floor(rnd(i,7)*3);
+    if(cov>thr && info.length){
+      const cy=(r+.5)*designH/rows; let li=info.find(o=>cy>=o.y0&&cy<o.y1);
+      if(!li){ let best=1e9; for(const o of info){ const d=Math.abs(cy-(o.y0+o.y1)/2); if(d<best){best=d;li=o;} } }
+      const ys=li.cfg.yarns.length?li.cfg.yarns:[0], n=ys.length; let k=0;
+      if(n>1){
+        const mix=li.cfg.mix;
+        if(mix==='letters'){ const lx=c+.5-li.x0; let j=0; while(j<li.bounds.length-2 && lx>=li.bounds[j+1]) j++; k=j%n; }
+        else if(mix==='stripe'){ const run=Math.max(3,Math.round(li.fs*0.14)); k=Math.floor((r*cols+c+Math.floor(vnoise(c/6,r/6,5)*4))/run)%n; }
+        else if(mix==='speckle'){ k=Math.floor(rnd(i,31)*n); }
+        else { const sc=Math.max(4,li.fs*0.5); const v=fbm(c/sc,r*ph/sc,11+li.idx*7); k=Math.min(n-1,Math.floor(clamp((v-0.22)/0.56,0,0.999)*n)); }
+      }
+      const yi=ys[k]; yarn[i]=yi; const f=1+(rnd(i,5)-.5)*.09; col=pal[yi].map(v=>v*f); letters.push(i);
+    } else {
+      const t=(r+.5)/rows;
+      const p=S.blend>0?smooth(S.split-S.blend,S.split+S.blend,t):(t>=S.split?1:0);
+      const base=rnd(i,3)<p?B:A;
+      const mott=1+S.mottle*(fbm(c/blobS,r*ph/blobS,2)-.5)*.6+(rnd(i,4)-.5)*.07;
+      const wash=Math.max(0,fbm(c/(blobS*1.6),r*ph/(blobS*1.6),9)-.55)*S.mottle*.9;
+      col=shade(base.map(v=>v*mott),wash);
+      if(rnd(i,91)<S.flecks/1000) fleck[i]=rnd(i,92)<.5?1:2;
+    }
+    rgb[i*3]=clamp(col[0],0,255); rgb[i*3+1]=clamp(col[1],0,255); rgb[i*3+2]=clamp(col[2],0,255);
+  }
+  // strays: loose yarn ends, in physical units (1 = one stitch width)
+  const strays=[];
+  for(let s=0;s<Math.round(S.strays);s++){
+    const pool=letters.length?letters:[Math.floor(rnd(s,200)*N)];
+    const a=pool[Math.floor(rnd(s,201)*pool.length)], ac=a%cols, ar=Math.floor(a/cols);
+    const ang=rnd(s,202)*Math.PI*2, len=cols*(.18+rnd(s,203)*.42);
+    const dx=Math.cos(ang), dy=Math.sin(ang), px=-dy, py=dx;
+    const p0=[ac+.5,(ar+.5)*ph], p3=[p0[0]+dx*len,p0[1]+dy*len];
+    const b1=(rnd(s,204)-.5)*len*.9, b2=(rnd(s,205)-.5)*len*.9;
+    const p1=[p0[0]+dx*len*.33+px*b1,p0[1]+dy*len*.33+py*b1], p2=[p0[0]+dx*len*.66+px*b2,p0[1]+dy*len*.66+py*b2];
+    const pts=[]; for(let j=0;j<=90;j++){ const t=j/90, u=1-t;
+      pts.push([u*u*u*p0[0]+3*u*u*t*p1[0]+3*u*t*t*p2[0]+t*t*t*p3[0], u*u*u*p0[1]+3*u*u*t*p1[1]+3*u*t*t*p2[1]+t*t*t*p3[1]]); }
+    const yi=yarn[a]>=0?yarn[a]:0;
+    strays.push({pts,col:pal[yi]});
+  }
+  L={cols,rows,ph,yarn,rgb,fleck,variant,strays,F,letterCount:letters.length};
+}
+
+/* ---------- stitch sprites ---------- */
+const sprites=new Map(); let spriteCw=0;
+function getSprite(r,g,b,v,cw,rh){
+  if(cw!==spriteCw||sprites.size>9000){ sprites.clear(); spriteCw=cw; }
+  const q=6; r=Math.min(255,Math.round(r/q)*q); g=Math.min(255,Math.round(g/q)*q); b=Math.min(255,Math.round(b/q)*q);
+  const key=(r<<16|g<<8|b)*4+v; let sp=sprites.get(key); if(sp) return sp;
+  const pad=Math.ceil(rh*.5)+1, ox=Math.ceil(cw*.2)+1, W=Math.ceil(cw)+ox*2, H=Math.ceil(rh)+pad*2;
+  const c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d'); const rgb=[r,g,b];
+  for(const side of [-1,1]){
+    const j=h32(v*131+side*17+3)-.5;
+    x.save(); x.translate(ox+cw*(.5+side*.2),pad+rh*.5); x.rotate(side*(.44+j*.09));
+    const rx=cw*.215, ry=rh*.76*(1+j*.08);
+    x.beginPath(); x.ellipse(0,0,rx,ry,0,0,Math.PI*2);
+    const gr=x.createLinearGradient(-rx,0,rx,0);
+    gr.addColorStop(0,css(shade(rgb,-.55))); gr.addColorStop(.3,css(rgb)); gr.addColorStop(.48,css(shade(rgb,.2)));
+    gr.addColorStop(.7,css(rgb)); gr.addColorStop(1,css(shade(rgb,-.6)));
+    x.fillStyle=gr; x.fill();
+    const gv=x.createLinearGradient(0,-ry,0,ry);
+    gv.addColorStop(0,'rgba(0,0,0,.5)'); gv.addColorStop(.28,'rgba(0,0,0,0)'); gv.addColorStop(.78,'rgba(0,0,0,0)'); gv.addColorStop(1,'rgba(0,0,0,.38)');
+    x.fillStyle=gv; x.fill();
+    x.save(); x.clip();
+    const step=ry*.36, off=h32(v*37+side+9)*step, lw=Math.max(.5,cw*.045);
+    for(let yy=-ry-step+off; yy<ry+step; yy+=step){
+      x.beginPath(); x.moveTo(-rx,yy-rx*.9); x.lineTo(rx,yy+rx*.9); x.strokeStyle='rgba(0,0,0,.2)'; x.lineWidth=lw; x.stroke();
+      x.beginPath(); x.moveTo(-rx,yy-rx*.9+lw*1.2); x.lineTo(rx,yy+rx*.9+lw*1.2); x.strokeStyle='rgba(255,255,255,.1)'; x.lineWidth=lw*.7; x.stroke();
+    }
+    x.restore();
+    x.beginPath(); x.ellipse(0,0,rx,ry,0,0,Math.PI*2); x.strokeStyle='rgba(0,0,0,.2)'; x.lineWidth=Math.max(.4,cw*.025); x.stroke();
+    x.restore();
+  }
+  sp={c,ox,oy:pad}; sprites.set(key,sp); return sp;
+}
+
+/* ---------- drawing ---------- */
+function drawRow(ctx,r,cw,rh){
+  const {cols,rgb,yarn,variant,fleck,F}=L, y=r*rh;
+  for(let c=0;c<cols;c++){ const i=r*cols+c, o=i*3;
+    ctx.fillStyle=`rgb(${rgb[o]*.36|0},${rgb[o+1]*.36|0},${rgb[o+2]*.36|0})`; ctx.fillRect(c*cw,y,cw+.6,rh+.6); }
+  for(let c=0;c<cols;c++){ const i=r*cols+c, o=i*3;
+    const sp=getSprite(rgb[o],rgb[o+1],rgb[o+2],variant[i],cw,rh); ctx.drawImage(sp.c,c*cw-sp.ox,y-sp.oy); }
+  ctx.lineCap='round';
+  for(let c=0;c<cols;c++){ const i=r*cols+c; if(!fleck[i]) continue;
+    const fc=F[fleck[i]-1], side=rnd(i,93)<.5?-1:1, x=c*cw+cw*(.5+side*.2);
+    ctx.beginPath(); ctx.moveTo(x+side*cw*.07,y+rh*.12); ctx.lineTo(x-side*cw*.07,y+rh*.88);
+    ctx.strokeStyle=css(shade(fc,-.25)); ctx.lineWidth=cw*.2; ctx.stroke();
+    ctx.strokeStyle=css(fc); ctx.lineWidth=cw*.12; ctx.stroke(); }
+  const lw=Math.max(.45,cw*.028);
+  for(let c=0;c<cols;c++){ const i=r*cols+c, isY=yarn[i]>=0;
+    const rate=isY?S.halo/100*5:S.fuzz/100*1.2; if(rate<=0) continue;
+    const n=Math.floor(rate)+(rnd(i,61)<rate%1?1:0); const o=i*3, col=[rgb[o],rgb[o+1],rgb[o+2]], lc=shade(col,.14);
+    for(let k=0;k<n;k++){ const s=i*8+k;
+      const px=c*cw+rnd(s,62)*cw, py=y+rnd(s,63)*rh, a=rnd(s,64)*6.2832, len=cw*(.35+rnd(s,65)*(isY?1.35:.7));
+      const ex=px+Math.cos(a)*len, ey=py+Math.sin(a)*len, bd=(rnd(s,66)-.5)*len*.9;
+      ctx.beginPath(); ctx.moveTo(px,py); ctx.quadraticCurveTo((px+ex)/2-Math.sin(a)*bd,(py+ey)/2+Math.cos(a)*bd,ex,ey);
+      ctx.strokeStyle=rgba(lc,isY?.2+.35*rnd(s,67):.12+.18*rnd(s,67)); ctx.lineWidth=lw; ctx.stroke(); }
+  }
+}
+function drawStray(ctx,s,cw,t){
+  const n=Math.max(2,Math.round(s.pts.length*t)), w=cw*S.strayWeight*2.2, col=s.col, P=s.pts;
+  const path=(dx,dy)=>{ ctx.beginPath(); ctx.moveTo(P[0][0]*cw+dx,P[0][1]*cw+dy); for(let j=1;j<n;j++) ctx.lineTo(P[j][0]*cw+dx,P[j][1]*cw+dy); };
+  ctx.lineCap='round'; ctx.lineJoin='round'; ctx.setLineDash([]);
+  path(w*.3,w*.55); ctx.strokeStyle='rgba(0,0,0,.26)'; ctx.lineWidth=w*1.25; ctx.stroke();
+  path(0,0); ctx.strokeStyle=css(shade(col,-.3)); ctx.lineWidth=w*1.08; ctx.stroke();
+  ctx.strokeStyle=css(col); ctx.lineWidth=w*.8; ctx.stroke();
+  ctx.setLineDash([w*.55,w*.55]); ctx.strokeStyle=rgba(shade(col,-.35),.55); ctx.lineWidth=w*.5; ctx.stroke(); ctx.setLineDash([]);
+  path(-w*.1,-w*.18); ctx.strokeStyle=rgba(shade(col,.4),.65); ctx.lineWidth=w*.2; ctx.stroke();
+}
+function renderFull(ctx,W){
+  const cw=W/L.cols, rh=cw*L.ph;
+  ctx.setTransform(1,0,0,1,0,0);
+  for(let r=L.rows-1;r>=0;r--) drawRow(ctx,r,cw,rh);
+  for(const s of L.strays) drawStray(ctx,s,cw,1);
+}
+
+/* ---------- preview ---------- */
+const cv=$('#cv'), ctx=cv.getContext('2d'), stageInner=$('#stageInner');
+function sizePreview(){
+  const aspect=L.cols/(L.rows*L.ph), box=stageInner.getBoundingClientRect();
+  let w=Math.max(120,box.width), h=w/aspect; if(box.height>60 && h>box.height){ h=box.height; w=h*aspect; }
+  cv.style.width=w+'px'; cv.style.height=h+'px';
+  const dpr=Math.min(2,window.devicePixelRatio||1); cv.width=Math.round(w*dpr); cv.height=Math.round(cv.width/aspect);
+}
+function updateMeta(){
+  const wIn=L.cols/(S.gaugeSts/4), hIn=L.rows/(S.gaugeRows/4);
+  $('#meta').textContent=`${L.cols} × ${L.rows} stitches · ${S.gaugeSts} sts × ${S.gaugeRows} rows per 4 in · knits up to ${wIn.toFixed(1)} × ${hIn.toFixed(1)} in`;
+  cv.setAttribute('aria-label','Knitted type preview: '+S.text.replace(/\s*\n\s*/g,' ').trim());
+}
+let raf=0, animating=false, pending=false, saveT=0;
+function schedule(){
+  if(animating){ pending=true; return; }
+  cancelAnimationFrame(raf);
+  raf=requestAnimationFrame(()=>{ computeLayout(); sizePreview(); renderFull(ctx,cv.width); updateMeta(); persist(); });
+}
+function persist(){ clearTimeout(saveT); saveT=setTimeout(()=>{ try{ const s={...S}; if(uploaded[s.font]){ s.font='Zilla Slab'; s.weight=600; } localStorage.setItem(KEY,JSON.stringify(s)); }catch(e){} },400); }
+new ResizeObserver(()=>schedule()).observe(stageInner);
+
+/* ---------- fonts ---------- */
+async function ensureFont(){ try{ await document.fonts.load(`${S.weight} 100px "${S.font}"`, S.text.replace(/\n/g,'')||'A'); }catch(e){} }
+async function fitWidth(frac=0.84){
+  await ensureFont();
+  const t=document.createElement('canvas').getContext('2d'); let maxW=0;
+  for(const l of textLines()){ if(!l.cfg) continue; t.font=fontStr(100); setTracking(t,S.tracking*100);
+    maxW=Math.max(maxW,(t.measureText(l.text).width-S.tracking*100)*l.cfg.scale/100); }
+  if(maxW>0) S.size=Math.max(6,Math.min(160,Math.round(Math.round(S.cols)*frac*100/maxW)));
+}
+
+/* ---------- UI ---------- */
+const fontSel=$('#font'), weightSel=$('#weight');
+FONTS.forEach(([n])=>fontSel.add(new Option(n,n)));
+Object.entries(FORMATS).forEach(([k,f])=>$('#format').add(new Option(f.label,k)));
+function buildWeights(){
+  const ws=uploaded[S.font]?[400]:(FONTS.find(f=>f[0]===S.font)||[0,[400]])[1];
+  weightSel.innerHTML=''; ws.forEach(w=>weightSel.add(new Option(String(w),String(w))));
+  if(!ws.includes(+S.weight)) S.weight=ws.reduce((a,b)=>Math.abs(b-S.weight)<Math.abs(a-S.weight)?b:a);
+  weightSel.value=String(S.weight);
+}
+function showVal(el){
+  const out=document.querySelector(`[data-v="${el.dataset.k}"]`); if(!out) return;
+  const v=S[el.dataset.k], f=el.dataset.fmt;
+  out.textContent= f==='pct'?Math.round(v*100)+'%': f==='x'?(+v).toFixed(2): f==='em'?(+v).toFixed(3)+' em': f==='sec'?v+' s': f==='sts'?v+' sts': f==='per'?v+' / 1000':String(Math.round(v));
+}
+function syncUI(){
+  if(uploaded[S.font]===undefined && !FONTS.some(f=>f[0]===S.font)) S.font='Zilla Slab';
+  buildWeights();
+  document.querySelectorAll('[data-k]').forEach(el=>{ const v=S[el.dataset.k];
+    if(el.type==='checkbox') el.checked=!!v; else if(v!=null) el.value=String(v); showVal(el); });
+  buildPalette(); buildLines();
+}
+document.querySelectorAll('[data-k]').forEach(el=>{
+  const k=el.dataset.k, ev=(el.type==='checkbox'||el.tagName==='SELECT')?'change':'input';
+  el.addEventListener(ev,()=>{
+    let v;
+    if(el.type==='checkbox') v=el.checked;
+    else if(el.type==='range'||el.type==='number'||k==='weight'){ v=parseFloat(el.value); if(!(v>0)&&el.type==='number') return; }
+    else v=el.value;
+    S[k]=v; showVal(el);
+    if(k==='text') buildLines();
+    if(k==='font'){ buildWeights(); }
+    if(k==='font'||k==='weight'||k==='text') ensureFont().then(schedule); else schedule();
+  });
+});
+
+function buildPalette(){
+  const box=$('#palette'); box.innerHTML='';
+  S.yarns.forEach((hex,i)=>{
+    const lab=document.createElement('label'); lab.className='sw';
+    lab.innerHTML=`<span class="swatch"><input type="color" aria-label="Yarn ${i+1}"></span>${i+1}`;
+    const inp=lab.querySelector('input'); inp.value=hex;
+    inp.addEventListener('input',()=>{ S.yarns[i]=inp.value; buildLines(); schedule(); });
+    box.append(lab);
+  });
+}
+function buildLines(){
+  const box=$('#lines'); box.innerHTML='';
+  const ls=textLines().filter(l=>l.cfg);
+  if(!ls.length){ box.innerHTML='<p class="hint">Type some text above to set up its lines.</p>'; return; }
+  ls.forEach(l=>{
+    const row=document.createElement('div'); row.className='line';
+    row.innerHTML=`<div class="line-top"><span class="line-name"></span><span class="val"></span></div>
+      <input type="range" min="20" max="160" step="1" id="ls${l.idx}" aria-label="Size of line ${l.idx+1}">
+      <div class="chips" role="group" aria-label="Yarns for line ${l.idx+1}"></div>
+      <select id="lm${l.idx}" aria-label="How the yarns mix on line ${l.idx+1}">
+        <option value="patches">Patches (intarsia)</option><option value="stripe">Self-striping</option>
+        <option value="letters">Letter by letter</option><option value="speckle">Heathered</option></select>`;
+    row.querySelector('.line-name').textContent=l.text.trim();
+    const val=row.querySelector('.val'), rg=row.querySelector('input'), sel=row.querySelector('select');
+    val.textContent=l.cfg.scale+'%'; rg.value=l.cfg.scale;
+    rg.addEventListener('input',()=>{ l.cfg.scale=+rg.value; val.textContent=l.cfg.scale+'%'; schedule(); });
+    sel.value=l.cfg.mix; sel.hidden=l.cfg.yarns.length<2;
+    sel.addEventListener('change',()=>{ l.cfg.mix=sel.value; schedule(); });
+    const chips=row.querySelector('.chips');
+    S.yarns.forEach((hex,yi)=>{
+      const b=document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=yi+1;
+      b.style.background=hex; b.style.color=lum(hex2rgb(hex))>.55?'#1b2130':'#ffffff';
+      b.setAttribute('aria-label',`Yarn ${yi+1}`); b.setAttribute('aria-pressed',String(l.cfg.yarns.includes(yi)));
+      b.addEventListener('click',()=>{
+        const has=l.cfg.yarns.includes(yi); if(has&&l.cfg.yarns.length===1) return;
+        l.cfg.yarns=has?l.cfg.yarns.filter(x=>x!==yi):[...l.cfg.yarns,yi].sort((a,b)=>a-b);
+        b.setAttribute('aria-pressed',String(!has)); sel.hidden=l.cfg.yarns.length<2; schedule();
+      });
+      chips.append(b);
+    });
+    box.append(row);
+  });
+}
+
+async function loadPreset(k){
+  S=structuredClone(PRESETS[k]); await ensureFont(); await fitWidth(S.fitFrac); syncUI(); schedule();
+}
+$('#pJohn').onclick=()=>loadPreset('john');
+$('#pPatch').onclick=()=>loadPreset('patch');
+$('#fit').onclick=async()=>{ await fitWidth(0.84); syncUI(); schedule(); };
+$('#reroll').onclick=()=>{ S.seed=Math.floor(Math.random()*1e6); schedule(); };
+let upN=0;
+$('#fontFile').addEventListener('change',async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  try{ const buf=await f.arrayBuffer(), name='Uploaded '+(++upN), ff=new FontFace(name,buf); await ff.load(); document.fonts.add(ff);
+    uploaded[name]=true; const label=f.name.replace(/\.[^.]+$/,''); fontSel.add(new Option(label,name));
+    S.font=name; S.weight=400; buildWeights(); fontSel.value=name; schedule(); toast('Loaded '+label);
+  }catch(err){ toast('That font file couldn’t be read. Try a .ttf, .otf or .woff file.'); }
+  e.target.value='';
+});
+
+/* ---------- toast ---------- */
+let toastT=0;
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true,3200); }
+
+/* ---------- saving files ---------- */
+let dl;
+async function getDL(){ if(dl!==undefined) return dl; try{ dl=window.claude&&window.claude.use?await window.claude.use('downloads'):null; }catch(e){ dl=null; } return dl; }
+async function saveFile(name,blob){
+  const d=await getDL(); if(!d){ toast('Saving files isn’t available in this view.'); return; }
+  try{ await d.save({filename:name,data:blob}); toast('Saved '+name); }
+  catch(e){ const c=e&&e.code;
+    toast(c==='declined'?'Save cancelled.':c==='rate_limited'?'A save prompt is already open.':c==='too_large'?'That file is too large here. Try a smaller export width.':'Couldn’t save the file: '+((e&&e.message)||'unknown error')); }
+}
+const slug=()=>(S.text.split('\n').map(s=>s.trim()).filter(Boolean).join('-').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'stitch-setter').slice(0,48);
+const nextFrame=()=>new Promise(r=>requestAnimationFrame(()=>setTimeout(r,0)));
+
+function setBusy(b){ ['#knit','#record','#export','#pJohn','#pPatch','#reroll'].forEach(s=>$(s).disabled=b); }
+
+$('#export').onclick=async()=>{
+  if(animating) return; setBusy(true); toast('Rendering…'); await nextFrame();
+  try{ computeLayout(); const W=+$('#expW').value, c=document.createElement('canvas');
+    c.width=W; c.height=Math.round(W*L.rows*L.ph/L.cols);
+    renderFull(c.getContext('2d'),W);
+    const blob=await new Promise(r=>c.toBlob(r,'image/png'));
+    await saveFile(`${slug()}-${W}w.png`,blob);
+  } finally { setBusy(false); schedule(); }
+};
+
+/* ---------- knit animation + recording ---------- */
+const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
+async function knit(record){
+  if(animating) return;
+  computeLayout(); sizePreview(); updateMeta();
+  if(!record && reduceMotion.matches){ renderFull(ctx,cv.width); toast('Animation is off because your system asks for reduced motion. Record knit still works.'); return; }
+  let target=cv, tctx=ctx, rec=null, chunks=[], mime='';
+  if(record){
+    mime=['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'].find(t=>window.MediaRecorder&&MediaRecorder.isTypeSupported(t))||'';
+    target=document.createElement('canvas'); target.width=1080; target.height=Math.round(1080*L.rows*L.ph/L.cols)&~1;
+    if(!mime||!target.captureStream){ toast('This browser can’t record canvas video. Try Chrome or Safari.'); return; }
+    tctx=target.getContext('2d');
+  }
+  animating=true; setBusy(true);
+  const W=target.width, cw=W/L.cols, rh=cw*L.ph;
+  tctx.setTransform(1,0,0,1,0,0); tctx.fillStyle='#16191f'; tctx.fillRect(0,0,target.width,target.height);
+  if(record){
+    rec=new MediaRecorder(target.captureStream(30),{mimeType:mime,videoBitsPerSecond:12e6});
+    rec.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); }; rec.start(250);
+  }
+  const mirror=()=>{ if(target!==cv){ ctx.setTransform(1,0,0,1,0,0); ctx.drawImage(target,0,0,cv.width,cv.height); } };
+  const dur=S.dur*1000, strayDur=L.strays.length?1100:0, hold=1200;
+  let done=0, buffer=null; const t0=performance.now();
+  await new Promise(res=>{
+    function frame(now){
+      const el=now-t0, want=Math.min(L.rows,Math.floor(el/dur*L.rows));
+      while(done<want){ drawRow(tctx,L.rows-1-done,cw,rh); done++; }
+      if(done>=L.rows){
+        if(!buffer){ buffer=document.createElement('canvas'); buffer.width=target.width; buffer.height=target.height; buffer.getContext('2d').drawImage(target,0,0); }
+        const st=strayDur?clamp((el-dur)/strayDur,0,1):1, e=1-Math.pow(1-st,3);
+        tctx.drawImage(buffer,0,0); if(strayDur) for(const s of L.strays) drawStray(tctx,s,cw,e);
+        if(el>dur+strayDur+hold){ mirror(); return res(); }
+      }
+      mirror(); requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  });
+  if(rec){
+    await new Promise(r=>{ rec.onstop=r; rec.stop(); });
+    const ext=mime.startsWith('video/mp4')?'mp4':'webm';
+    const blob=new Blob(chunks,{type:mime.split(';')[0]});
+    animating=false; setBusy(false);
+    await saveFile(`${slug()}-knit.${ext}`,blob);
+    schedule();
+  } else { animating=false; setBusy(false); }
+  if(pending){ pending=false; schedule(); }
+}
+$('#knit').onclick=()=>knit(false);
+$('#record').onclick=()=>knit(true);
+
+/* ---------- boot ---------- */
+(async()=>{
+  syncUI(); await ensureFont();
+  if(!S.size){ await fitWidth(S.fitFrac||0.84); syncUI(); }
+  schedule();
+  document.fonts.ready.then(()=>schedule());
+})();
+})();
+</script>
