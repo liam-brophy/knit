@@ -29,7 +29,7 @@ export function drawChartView(ctx, chart, img, xf, theme) {
   const r0 = Math.max(0, Math.floor(-oy / sy)), r1 = Math.min(rows, Math.ceil((H - oy) / sy));
   if (c1 <= c0 || r1 <= r0) return;
   // drop shadow under the sheet
-  ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(ox + 2, oy + 3, cols * scale, rows * sy);
+  ctx.strokeStyle = '#141414'; ctx.lineWidth = 1; ctx.strokeRect(ox - 0.5, oy - 0.5, cols * scale + 1, rows * sy + 1);
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(img, c0, r0, c1 - c0, r1 - r0, ox + c0 * scale, oy + r0 * sy, (c1 - c0) * scale, (r1 - r0) * sy);
   // grid
@@ -77,9 +77,9 @@ export function chartPNG(doc, chart, title) {
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
   const x = cv.getContext('2d');
   x.fillStyle = '#ffffff'; x.fillRect(0, 0, W, H);
-  x.fillStyle = '#1b2130'; x.font = '700 20px "Bricolage Grotesque", "IBM Plex Sans", sans-serif'; x.textBaseline = 'alphabetic';
+  x.fillStyle = '#141414'; x.font = '500 22px "Fraunces", Georgia, serif'; x.textBaseline = 'alphabetic';
   x.fillText(title || doc.name || 'Chart', mL, 32);
-  x.font = '400 12px "IBM Plex Mono", monospace'; x.fillStyle = '#5a6476';
+  x.font = '400 12px "Figtree", sans-serif'; x.fillStyle = '#6c6c68';
   const g = doc.knit.gauge;
   x.fillText(`${cols} sts × ${rows} rows · ${doc.knit.stsPerInch} sts/in printed · gauge ${g.sts} sts × ${g.rows} rows / 4 in · knits to ${(cols / (g.sts / 4)).toFixed(1)} × ${(rows / (g.rows / 4)).toFixed(1)} in · read from bottom right`, mL, 52);
   // cells
@@ -102,23 +102,23 @@ export function chartPNG(doc, chart, title) {
   for (const f of P.folds || []) { x.beginPath(); x.moveTo(toX(f), mT - 8); x.lineTo(toX(f), mT + rows * ch + 8); x.stroke(); }
   x.restore();
   // numbers
-  x.fillStyle = '#1b2130'; x.font = '500 10px "IBM Plex Mono", monospace'; x.textBaseline = 'middle';
+  x.fillStyle = '#141414'; x.font = '500 10px "Figtree", sans-serif'; x.textBaseline = 'middle';
   const rs = pickStep(ch, 12), cs = pickStep(cw, 22);
   x.textAlign = 'left';
   for (let r = 0; r < rows; r++) { const n = rows - r; if (n % rs === 0 || n === 1) x.fillText(String(n), mL + cols * cw + 6, mT + (r + 0.5) * ch); }
   x.textAlign = 'center';
   for (let c = 0; c < cols; c++) { const n = cols - c; if (n % cs === 0 || n === 1) x.fillText(String(n), mL + (c + 0.5) * cw, mT + rows * ch + 12); }
-  x.textAlign = 'right'; x.fillStyle = '#5a6476';
+  x.textAlign = 'right'; x.fillStyle = '#6c6c68';
   x.fillText('row', W - 6, mT - 10); x.textAlign = 'left'; x.fillText('stitch →', mL, mT + rows * ch + 28);
   // legend
   let ly = mT + rows * ch + mB + 8;
-  x.font = '600 11px "IBM Plex Sans", sans-serif'; x.fillStyle = '#5a6476'; x.textBaseline = 'alphabetic';
+  x.font = '600 11px "Figtree", sans-serif'; x.fillStyle = '#6c6c68'; x.textBaseline = 'alphabetic';
   x.fillText('YARNS', mL, ly); ly += 10;
   x.font = '400 12px "IBM Plex Sans", sans-serif';
   used.forEach((p, k) => {
     const col = k % legendCols, row = Math.floor(k / legendCols), X = mL + col * 230, Y = ly + row * 24;
     x.fillStyle = p.hex; x.fillRect(X, Y, 16, 16); x.strokeStyle = 'rgba(0,0,0,.3)'; x.lineWidth = 1; x.strokeRect(X + 0.5, Y + 0.5, 15, 15);
-    x.fillStyle = '#1b2130'; x.textBaseline = 'middle';
+    x.fillStyle = '#141414'; x.textBaseline = 'middle';
     x.fillText(`${p.name || 'Yarn'}  ${p.hex.toUpperCase()}  · ${p.n.toLocaleString()} sts`, X + 24, Y + 8);
   });
   return new Promise((res) => cv.toBlob(res, 'image/png'));

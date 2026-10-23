@@ -1,4 +1,4 @@
-// End-to-end test of the built single-file app (dist/stitch-setter.html) in headless Chromium + SwiftShader.
+// End-to-end test of the built single-file app (dist/knit.html) in headless Chromium + SwiftShader.
 //
 //   npm run test:e2e        (= npm run build && NODE_PATH=$(npm root -g) node test/e2e.mjs)
 //
@@ -16,8 +16,8 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const out = join(root, '.scratch/app');
 mkdirSync(out, { recursive: true });
 
-const html = readFileSync(join(root, 'dist/stitch-setter.html'), 'utf8');
-if (!html.startsWith('<title>Stitch Setter</title>')) throw new Error('dist must start with <title>Stitch Setter</title>');
+const html = readFileSync(join(root, 'dist/knit.html'), 'utf8');
+if (!html.startsWith('<title>Knit</title>')) throw new Error('dist must start with <title>Knit</title>');
 const page = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <script>
 window.__saved = []; window.__blobs = {};

@@ -1,4 +1,4 @@
-# Stitch Setter v3 — knitted cover studio (binding contract)
+# Knit — knitted cover studio (binding contract)
 
 **Goal (priority order).** A book designer sets type and colour blocks on a real knitting chart and gets a
 **print-resolution image that looks like photographed stockinette** — the same class of rendering as

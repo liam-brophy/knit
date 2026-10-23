@@ -1,4 +1,4 @@
-// Stitch Setter v3 — app shell: compose pipeline, header, tools, view modes, keyboard, status, autosave.
+// Knit — app shell: compose pipeline, header, tools, view modes, keyboard, status, autosave.
 import { S, on, mutate, undo, redo, canUndo, canRedo, setDoc, setTool, select, selLayer, init, loadInitialDoc, sealHistory } from './store.js';
 import { DOC_PRESETS, createDoc, composeChart, createKnitRenderer, fontCss, serialize } from './modules.js';
 import { createStage } from './stage.js';
@@ -10,8 +10,8 @@ export async function start() {
   const { doc, restored } = loadInitialDoc();
   init(doc);
 
-  // theme preference (per viewer)
-  try { const t = localStorage.getItem('stitch-setter-v3:theme'); if (t) document.documentElement.dataset.theme = t; } catch { /* ignore */ }
+  // Knit uses one light theme; older docs saved with the dark v3 backdrop get the new working-surface colour.
+  if (S.doc && S.doc.render && /^#1a1a1a$/i.test(S.doc.render.background || '')) S.doc.render.background = '#f4f3ef';
 
   /* ---------- renderer ---------- */
   let renderer = null;
@@ -73,12 +73,6 @@ export async function start() {
   $('#undo').addEventListener('click', () => undo());
   $('#redo').addEventListener('click', () => redo());
   $('#exportBtn').addEventListener('click', () => exporter.open());
-  $('#theme').addEventListener('click', () => {
-    const dark = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() === '#12151b';
-    const t = dark ? 'light' : 'dark'; document.documentElement.dataset.theme = t;
-    try { localStorage.setItem('stitch-setter-v3:theme', t); } catch { /* ignore */ }
-    stage.refreshTheme();
-  });
 
   /* ---------- tools / views / guides / zoom ---------- */
   for (const b of $$('#tools .tool[data-tool]')) b.addEventListener('click', () => setTool(b.dataset.tool));

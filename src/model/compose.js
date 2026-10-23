@@ -1,4 +1,4 @@
-// Stitch Setter v3 — layers → knitting chart. Owner: model.
+// Knit — layers → knitting chart. Owner: model.
 // Port of the v1/v2 coverage → threshold → mix approach (legacy/v2/src/chart.js), now in inch space:
 // text is drawn into a supersampled mask whose pixels map to cells, with an inch-space transform, so letterforms
 // keep their true printed proportions whatever the gauge. All randomness is a pure hash of (seed, cell, layer).

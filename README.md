@@ -1,4 +1,4 @@
-# Stitch Setter
+# Knit
 
 Design knitted-type book covers on a real knitting chart and export photoreal knitted cover art
 (front cover or full wrap: back, spine, front).
@@ -12,7 +12,7 @@ Design knitted-type book covers on a real knitting chart and export photoreal kn
 
 ```sh
 npm install
-npm run build        # writes site/index.html (website) and dist/stitch-setter.html (Claude artifact)
+npm run build        # writes site/index.html (website) and dist/knit.html (Claude artifact)
 npx serve site       # or open site/index.html directly in Chrome
 ```
 

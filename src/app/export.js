@@ -98,7 +98,7 @@ export function createExport({ renderer, afterCompose }) {
   $('#openFile').addEventListener('change', async (e) => {
     const f = e.target.files[0]; e.target.value = ''; if (!f) return;
     try { const doc = deserialize(await f.text()); setDoc(doc); dlg.close(); toast(`Opened ${doc.name || f.name}`); }
-    catch (err) { toast('That file isn’t a Stitch Setter project'); }
+    catch (err) { toast('That file isn’t a Knit project'); }
   });
 
   async function open() {

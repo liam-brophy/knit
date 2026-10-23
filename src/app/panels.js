@@ -313,13 +313,15 @@ function propsSection(stage) {
       const fonts = [...FONT_CHOICES, ...uploadedFonts];
       if (!fonts.includes(L0.font)) fonts.push(L0.font);
       const font = sel(fonts.map((f) => ({ value: f, label: f })), L0.font, (v) => set((l) => { l.font = v; }), { 'aria-label': 'Typeface' });
-      const up = h('label', { class: 'btn s', title: 'Upload a font (TTF, OTF, WOFF, WOFF2) — used for this session' }, 'Upload…', h('input', { type: 'file', accept: '.ttf,.otf,.woff,.woff2', hidden: true, onchange: (e) => uploadFont(e.target.files[0], (fam) => set((l) => { l.font = fam; })) }));
+      const up = h('label', { class: 'btn s', title: 'Upload a font (TTF, OTF, WOFF, WOFF2) — used for this session' }, 'Upload font…', h('input', { type: 'file', accept: '.ttf,.otf,.woff,.woff2', hidden: true, onchange: (e) => uploadFont(e.target.files[0], (fam) => set((l) => { l.font = fam; })) }));
       add(() => font.set(L().font));
-      el.append(row('Font', h('div', { style: { display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: '6px' } }, font, up)));
+      el.append(row('Font', font));
+      el.append(row('', h('div', { style: { display: 'flex', justifyContent: 'flex-start' } }, up)));
       const weight = sel(WEIGHTS.map(([v, n]) => ({ value: String(v), label: `${v} ${n}` })), String(L0.weight), (v) => set((l) => { l.weight = +v; }), { 'aria-label': 'Weight' });
       const ital = seg([{ value: false, label: 'Roman', title: 'Upright' }, { value: true, label: 'Italic', title: 'Italic' }], !!L0.italic, (v) => set((l) => { l.italic = v; }));
       add(() => { weight.set(String(L().weight)); ital.set(!!L().italic); });
-      el.append(row('Weight', h('div', { style: { display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: '6px' } }, weight, ital)));
+      el.append(row('Weight', weight));
+      el.append(row('Style', ital));
       const size = NF('size', { unit: 'in', min: 0.05, max: 20, step: 0.05, title: 'Font size (em) in inches — also accepts pt/mm, e.g. 72pt' });
       const sizeRo = h('div', { class: 'readout' });
       add(() => { const c = S.chart; if (c) sizeRo.innerHTML = `${(L().size * 72).toFixed(1)} pt em · <b>${Math.round(L().size / c.cellH)} rows</b> × ${Math.round(L().size / c.cellW)} sts`; });
@@ -437,7 +439,7 @@ function renderSection() {
     S1('contrast', 'Contrast', 0.5, 1.6, 0.01, 2, 'Depth of shading');
     const bg = h('input', { type: 'color', 'aria-label': 'Background' });
     bg.addEventListener('input', () => set((r) => { r.background = bg.value; }, 'bg'));
-    add(() => { bg.value = R().background || '#1a1a1a'; });
+    add(() => { bg.value = R().background || '#f4f3ef'; });
     el.append(row('Backdrop', h('div', { class: 'colorin' }, h('span', { class: 'cw' }, bg), h('span', { class: 'hint' }, 'Behind the fabric'))));
   }, () => 'render');
 }

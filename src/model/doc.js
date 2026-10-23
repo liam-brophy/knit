@@ -1,4 +1,4 @@
-// Stitch Setter v3 — document model (plain JSON). Owner: model.
+// Knit — document model (plain JSON). Owner: model.
 // Document space is inches, origin = top-left of the full printed sheet INCLUDING bleed, x right, y down.
 
 export const DOC_VERSION = 3;
@@ -67,7 +67,7 @@ export function uid(prefix = 'l') {
 function uniqueId(prefix, taken) { let i = 1; while (taken.has(prefix + i)) i++; return prefix + i; }
 
 /* ---------- defaults ---------- */
-export const DEFAULT_RENDER = { light: { azimuth: 135, elevation: 50 }, irregularity: 0.5, halo: 0.3, plies: 3, twist: 0.6, contrast: 1.0, background: '#1a1a1a' };
+export const DEFAULT_RENDER = { light: { azimuth: 135, elevation: 50 }, irregularity: 0.5, halo: 0.3, plies: 3, twist: 0.6, contrast: 1.0, background: '#f4f3ef' };
 export const DEFAULT_GUIDES = { trim: true, bleed: true, spine: true, safe: true, safeInset: 0.25, spineSafeInset: 0.0625 };
 
 function baseDoc() {
@@ -361,7 +361,7 @@ function fromLegacy(s) {
 export function deserialize(json) {
   let o = json;
   if (typeof json === 'string') o = JSON.parse(json);
-  if (!isObj(o)) throw new Error('deserialize: not a Stitch Setter document');
+  if (!isObj(o)) throw new Error('deserialize: not a Knit document');
   if (!('layers' in o) && ('text' in o || 'groundA' in o)) return normalize(fromLegacy(o));
   const def = baseDoc();
   const d = mergeDefaults(def, o);

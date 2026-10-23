@@ -1,4 +1,4 @@
-// Stitch Setter v3 — photographic stockinette renderer (raw WebGL2).
+// Knit — photographic stockinette renderer (raw WebGL2).
 // See ARCHITECTURE.md "Knit renderer". Shading is fully analytic per pixel in chart space
 // (3D plied-leg stitch model, height-as-depth interlock resolved by max over neighbouring legs,
 // AO + soft shadows from the analytic height field), so export tiles are seam-free by construction.

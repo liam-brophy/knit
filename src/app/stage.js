@@ -117,25 +117,25 @@ export function createStage({ renderer, onHover }) {
     const line = (col, w = 1, dash = []) => { o.strokeStyle = col; o.lineWidth = w; o.setLineDash(dash); };
     const sh = R(P.sheet), tr = R(P.trim);
     if (g.trim) { // dim the bleed area
-      o.fillStyle = 'rgba(0,0,0,.22)'; o.beginPath(); o.rect(...sh); o.rect(tr[0], tr[1] + tr[3], tr[2], -tr[3]); o.fill();
-      line('rgba(0,0,0,.55)', 3); o.strokeRect(...tr); line('#f2f2f2', 1); o.strokeRect(...tr);
+      o.fillStyle = 'rgba(255,255,255,.5)'; o.beginPath(); o.rect(...sh); o.rect(tr[0], tr[1] + tr[3], tr[2], -tr[3]); o.fill();
+      line('rgba(255,255,255,.75)', 3); o.strokeRect(...tr); line('#141414', 1); o.strokeRect(...tr);
     }
-    if (g.bleed) { line('#ff4d5e', 1); o.strokeRect(sh[0] - 0.5, sh[1] - 0.5, sh[2] + 1, sh[3] + 1); }
+    if (g.bleed) { line('#d64545', 1); o.strokeRect(sh[0] - 0.5, sh[1] - 0.5, sh[2] + 1, sh[3] + 1); }
     if (g.spine) for (const f of P.folds || []) {
       const a = inToScreen(f, 0), b = inToScreen(f, P.sheet.h);
-      line('rgba(0,0,0,.5)', 3); o.beginPath(); o.moveTo(a.x, a.y); o.lineTo(b.x, b.y); o.stroke();
-      line('#2ec4d6', 1, [6, 4]); o.beginPath(); o.moveTo(a.x, a.y); o.lineTo(b.x, b.y); o.stroke();
+      line('rgba(255,255,255,.75)', 3); o.beginPath(); o.moveTo(a.x, a.y); o.lineTo(b.x, b.y); o.stroke();
+      line('#141414', 1, [6, 4]); o.beginPath(); o.moveTo(a.x, a.y); o.lineTo(b.x, b.y); o.stroke();
     }
-    if (g.safe) { line('#d65cff', 1, [3, 3]); for (const k of ['front', 'back', 'spine']) if (P.safe[k]) o.strokeRect(...R(P.safe[k])); }
+    if (g.safe) { line('#3d7bd9', 1, [2, 3]); for (const k of ['front', 'back', 'spine']) if (P.safe[k]) o.strokeRect(...R(P.safe[k])); }
     o.setLineDash([]);
     // hover box for a layer under the cursor (select tool)
-    if (S.tool === 'select' && hoverLayer && hoverLayer.id !== S.sel) { const b = layerBox(hoverLayer); if (b) { line(theme.sel, 1); o.strokeRect(...R(b)); } }
+    if (S.tool === 'select' && hoverLayer && hoverLayer.id !== S.sel) { const b = layerBox(hoverLayer); if (b) { line('rgba(255,255,255,.7)', 3); o.strokeRect(...R(b)); line(theme.sel, 1, [4, 3]); o.strokeRect(...R(b)); o.setLineDash([]); } }
     // selection
     const L = selLayer(), b = layerBox(L);
     if (b) {
-      const r = R(b); line(theme.sel, 1.5); o.strokeRect(...r);
-      if (L.type === 'text' && b.m) { const a = inToScreen(b.m.anchor.x, b.m.anchor.y); o.fillStyle = theme.sel; o.beginPath(); o.arc(a.x, a.y, 3, 0, Math.PI * 2); o.fill(); }
-      for (const k of HANDLES[L.type] || []) { const p = inToScreen(hpos(b, k).x, hpos(b, k).y); o.fillStyle = '#fff'; o.fillRect(p.x - 4, p.y - 4, 8, 8); line(theme.sel, 1.5); o.strokeRect(p.x - 4, p.y - 4, 8, 8); }
+      const r = R(b); line('rgba(255,255,255,.8)', 3.5); o.strokeRect(...r); line(theme.sel, 1.25); o.strokeRect(...r);
+      if (L.type === 'text' && b.m) { const a = inToScreen(b.m.anchor.x, b.m.anchor.y); o.fillStyle = '#fff'; o.beginPath(); o.arc(a.x, a.y, 4, 0, Math.PI * 2); o.fill(); line(theme.sel, 1.25); o.stroke(); }
+      for (const k of HANDLES[L.type] || []) { const p = inToScreen(hpos(b, k).x, hpos(b, k).y); o.fillStyle = '#fff'; o.beginPath(); o.arc(p.x, p.y, 5, 0, Math.PI * 2); o.fill(); line(theme.sel, 1.25); o.stroke(); }
       if (drag && (drag.kind === 'move' || drag.kind === 'resize')) { // live readout
         const txt = L.type === 'text' ? `${(+L.size).toFixed(2)} in · ${Math.round(L.size / S.chart.cellH)} rows` : `${b.w.toFixed(2)} × ${b.h.toFixed(2)} in`;
         const pos = `x ${(+L.x).toFixed(3)}  y ${(+L.y).toFixed(3)}`;
@@ -152,9 +152,9 @@ export function createStage({ renderer, onHover }) {
     }
   }
   function pill(o, text, x, y) {
-    o.font = `500 11px ${theme.mono}`; const w = o.measureText(text).width + 14;
+    o.font = `500 12px ${theme.mono}`; const w = o.measureText(text).width + 20;
     x = Math.max(w / 2 + 4, Math.min(W - w / 2 - 4, x)); y = Math.min(H - 14, y);
-    o.fillStyle = 'rgba(20,24,32,.88)'; o.beginPath(); o.roundRect ? o.roundRect(x - w / 2, y - 10, w, 20, 4) : o.rect(x - w / 2, y - 10, w, 20); o.fill();
+    o.fillStyle = '#141414'; o.beginPath(); o.roundRect ? o.roundRect(x - w / 2, y - 11, w, 22, 11) : o.rect(x - w / 2, y - 11, w, 22); o.fill();
     o.fillStyle = '#fff'; o.textAlign = 'center'; o.textBaseline = 'middle'; o.fillText(text, x, y + 0.5); o.textAlign = 'left';
   }
 
@@ -355,5 +355,5 @@ export function createStage({ renderer, onHover }) {
 function readTheme() {
   const cs = getComputedStyle(document.documentElement);
   const v = (n, d) => (cs.getPropertyValue(n) || '').trim() || d;
-  return { stage: v('--stage', '#c9ced6'), plate: v('--panel', '#f3f4f6'), ink: v('--fg', '#1b2130'), sel: v('--sel', '#2f6fde'), mono: v('--f-mono', 'monospace') };
+  return { stage: v('--stage', '#f4f3ef'), plate: v('--panel', '#ffffff'), ink: v('--fg', '#141414'), sel: v('--sel', '#141414'), mono: v('--f-mono', 'sans-serif') };
 }
